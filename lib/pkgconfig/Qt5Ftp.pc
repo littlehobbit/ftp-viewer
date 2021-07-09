@@ -1,0 +1,14 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include/qt
+
+
+Name: Qt5 Ftp
+Description: Qt Ftp module
+Version: 5.0.0
+Libs: -lQt5Ftp 
+Libs.private: /usr/lib/libQt5Network.so /usr/lib/libQt5Core.so -lpthread    
+Cflags: -DQT_FTP_LIB -I${includedir}/QtFtp -I${includedir}
+Requires: Qt5Core Qt5Network
+
