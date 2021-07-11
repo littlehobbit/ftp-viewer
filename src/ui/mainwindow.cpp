@@ -8,6 +8,7 @@
 #include <QToolBar>
 
 #include "mainwindow.h"
+#include "urlloginwidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -42,11 +43,18 @@ MainWindow::MainWindow(QWidget *parent)
     _receivedData->setReadOnly(true);
 
     // Layout
-    QBoxLayout *layout = new QVBoxLayout();
-    layout->addWidget(_receivedData, 1);
-    layout->addWidget(sendButton, 1);
+    auto urlLoginForm = new UrlLoginWidget();
+    QBoxLayout *rightLayout = new QVBoxLayout();
+    rightLayout->addWidget(urlLoginForm);
+    rightLayout->addStretch(1);
+    rightLayout->addWidget(sendButton);
+    rightLayout->addStretch(1);
 
-    frame->setLayout(layout);
+    auto widgetLayout = new QHBoxLayout();
+    widgetLayout->addWidget(_receivedData);
+    widgetLayout->addLayout(rightLayout);
+
+    frame->setLayout(widgetLayout);
 }
 
 void MainWindow::sendRequest()
