@@ -10,13 +10,11 @@ class FtpAdapter : public QFtp
     Q_OBJECT
 
 public:
-    FtpAdapter(const QString& url, QObject *parent = nullptr);
-
-    FtpAdapter(QObject *parent = nullptr);
-
     void connectToHost(const QString& url);
 
     const std::vector<QUrlInfo>& getLastDirList() const;
+
+    static FtpAdapter& instance();
 
 signals:
     void connected();
@@ -27,6 +25,13 @@ signals:
 
     void errorOccured();
 
+protected:
+    FtpAdapter(const QString& url, QObject *parent = nullptr);
+
+    FtpAdapter(QObject *parent = nullptr);
+
+    ~FtpAdapter() = default;
+
 private slots:
     void procResult(int id, bool err);
 
@@ -35,8 +40,13 @@ private slots:
     void commandStart(int id);
 
 private:
-    std::vector<QUrlInfo> _dirList;
+    class FtpAdapterDestroyer;
 
+    static FtpAdapter *_instance;
+
+    static FtpAdapterDestroyer _destoyer;
+
+    std::vector<QUrlInfo> _dirList;
 };
 
 #endif // FTPMANAGER_H

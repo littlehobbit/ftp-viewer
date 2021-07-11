@@ -29,6 +29,5 @@ private slots:
 private:
     QTextEdit *_receivedData = nullptr;
     FtpAdapter *_ftp = nullptr;
-//    QNetworkAccessManager *_networkManager = nullptr;
 };
 #endif // MAINWINDOW_H

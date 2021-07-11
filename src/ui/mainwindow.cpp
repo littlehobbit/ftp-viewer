@@ -15,16 +15,16 @@ MainWindow::MainWindow(QWidget *parent)
     this->resize(500, 500);
 
     // Temp signal checking
-    _ftp = new FtpAdapter(this);
-    QObject::connect(_ftp, &FtpAdapter::errorOccured,
+    auto& ftp = FtpAdapter::instance();
+    QObject::connect(&ftp, &FtpAdapter::errorOccured,
                      this, &MainWindow::error);
 
-    QObject::connect(_ftp, &FtpAdapter::listDone,
+    QObject::connect(&ftp, &FtpAdapter::listDone,
                      this, &MainWindow::listDirectory);
 
 
-    _ftp->connectToHost("ftp.gnu.org");
-    _ftp->login();
+    ftp.connectToHost("ftp.gnu.org");
+    ftp.login();
 
     // Application frame
     QFrame *frame = new QFrame();
@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::sendRequest()
 {
-    _ftp->list();
+    FtpAdapter::instance().list();
 }
 
 void MainWindow::error()

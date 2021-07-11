@@ -2,6 +2,29 @@
 
 #include "ftpadapter.h"
 
+class FtpAdapter::FtpAdapterDestroyer
+{
+public:
+    FtpAdapterDestroyer() = default;
+
+    ~FtpAdapterDestroyer()
+    {
+        delete _instance;
+    }
+
+    void initiaize(FtpAdapter* ptr)
+    {
+        _instance = ptr;
+    }
+
+private:
+    FtpAdapter *_instance = nullptr;
+
+};
+
+FtpAdapter* FtpAdapter::_instance = nullptr;
+FtpAdapter::FtpAdapterDestroyer FtpAdapter::_destoyer;
+
 FtpAdapter::FtpAdapter(QObject *parent) : QFtp(parent)
 {
     QObject::connect(this, &QFtp::commandFinished,
@@ -11,13 +34,24 @@ FtpAdapter::FtpAdapter(QObject *parent) : QFtp(parent)
                      this, &FtpAdapter::commandStart);
 
     QObject::connect(this, &QFtp::listInfo, this, &FtpAdapter::addListItem);
+
+    _dirList.reserve(30);
 }
 
 FtpAdapter::FtpAdapter(const QString& url, QObject *parent)
     : QFtp(parent)
 {
     this->connectToHost(url);
-    _dirList.reserve(30);
+}
+
+FtpAdapter& FtpAdapter::instance()
+{
+    if (!_instance) {
+        _instance = new FtpAdapter();
+        _destoyer.initiaize(_instance);
+    }
+
+    return *_instance;
 }
 
 void FtpAdapter::procResult(int id, bool err)
@@ -57,26 +91,15 @@ void FtpAdapter::commandStart(int id)
 
 void FtpAdapter::connectToHost(const QString &url)
 {
-    if (this->hasPendingCommands()) {
-        this->clearPendingCommands();
-        this->abort();
+    if (instance().hasPendingCommands()) {
+        instance().clearPendingCommands();
+        instance().abort();
     }
 
-//    _url = url;
-    QFtp::connectToHost(url);
+    instance().QFtp::connectToHost(url);
 }
 
 void FtpAdapter::addListItem(const QUrlInfo& item)
 {
     _dirList.push_back(item);
 }
-
-//void FtpManager::list(const QString &dir)
-//{
-//    _client->list(dir);
-//}
-
-//QFtp* FtpManager::getClient() const
-//{
-//    return _client;
-//}
