@@ -17,6 +17,8 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Network REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network REQUIRED)
 
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
+
 include_directories(
         ${PROJECT_SOURCE_DIR}/includes
         ${PROJECT_SOURCE_DIR}/src
@@ -66,6 +68,7 @@ target_link_libraries(
     PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets
         Qt${QT_VERSION_MAJOR}::Network
+        Qt${QT_VERSION_MAJOR}::Core
         Qt5Ftp
 )
 

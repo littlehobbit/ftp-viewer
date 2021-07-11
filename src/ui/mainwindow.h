@@ -5,9 +5,7 @@
 #include <QTextEdit>
 #include <QUrl>
 
-#include <QFtp>
-
-#include "ftpmanager.h"
+#include "ftpadapter.h"
 
 class QNetworkAccessManager;
 
@@ -22,9 +20,15 @@ public:
 private slots:
     void sendRequest();
 
+    void error();
+
+    void listDirectory(std::vector<QUrlInfo> info);
+
+    void connected();
+
 private:
     QTextEdit *_receivedData = nullptr;
-    QFtp *_ftp = nullptr;
-    QNetworkAccessManager *_networkManager = nullptr;
+    FtpAdapter *_ftp = nullptr;
+//    QNetworkAccessManager *_networkManager = nullptr;
 };
 #endif // MAINWINDOW_H

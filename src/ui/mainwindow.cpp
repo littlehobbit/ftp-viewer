@@ -7,7 +7,6 @@
 #include <QMenuBar>
 #include <QToolBar>
 
-
 #include "mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -15,28 +14,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     this->resize(500, 500);
 
-    _ftp = new QFtp(this);
-    // ftp logging
-    QObject::connect(_ftp, &QFtp::commandFinished,
-                     this, [this] (int id, bool error) {
-        QTextStream out(stdout);
-        out << id << ": ";
-        if (error) {
-            out << "error - " << _ftp->errorString();
-        } else {
-            out << "done";
-            if (_ftp->currentCommand() == QFtp::List) {
-                out << " list was proccessed";
-            }
-        }
-        out << Qt::endl;
-        std::cout << "======================================" << std::endl;
-    });
+    // Temp signal checking
+    _ftp = new FtpAdapter(this);
+    QObject::connect(_ftp, &FtpAdapter::errorOccured,
+                     this, &MainWindow::error);
 
-    QObject::connect(_ftp, &QFtp::listInfo, this, [](const QUrlInfo& info) {
-        QTextStream out(stdout);
-        out << info.name() << Qt::endl;
-    });
+    QObject::connect(_ftp, &FtpAdapter::listDone,
+                     this, &MainWindow::listDirectory);
+
 
     _ftp->connectToHost("ftp.gnu.org");
     _ftp->login();
@@ -62,27 +47,31 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(sendButton, 1);
 
     frame->setLayout(layout);
-
-    // Network manager
-    _networkManager = new QNetworkAccessManager(this);
-    connect(_networkManager, &QNetworkAccessManager::finished,
-            this, [this](QNetworkReply *reply) {
-        if (reply->error() != QNetworkReply::NoError) {
-            QTextStream out(stdout);
-            out << "Error: " << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() << Qt::endl;
-        } else {
-            _receivedData->setText(reply->readAll());
-        }
-
-        reply->deleteLater();
-    });
 }
 
 void MainWindow::sendRequest()
 {
     _ftp->list();
-    _ftp->list("pub");
-    _ftp->list("video");
+}
+
+void MainWindow::error()
+{
+    QTextStream out(stdout);
+    out << _ftp->errorString() << Qt::endl;
+}
+
+void MainWindow::listDirectory(std::vector<QUrlInfo> info)
+{
+    QString text;
+    QTextStream textStream(&text);
+    for (const auto& iter : info) {
+        textStream << iter.name() << Qt::endl;
+    }
+    _receivedData->setText(text);
+}
+
+void MainWindow::connected()
+{
 }
 
 MainWindow::~MainWindow()
