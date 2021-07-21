@@ -93,10 +93,13 @@ void FtpAdapter::connectToHost(const QString &url)
 {
     if (instance().hasPendingCommands()) {
         instance().clearPendingCommands();
-        instance().abort();
+//        instance().abort();
     }
 
-    instance().QFtp::connectToHost(url);
+    if (_instance->state() != QFtp::Unconnected)
+        _instance->close();
+
+    _instance->QFtp::connectToHost(url);
 }
 
 void FtpAdapter::addListItem(const QUrlInfo& item)

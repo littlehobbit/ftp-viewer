@@ -1,36 +1,47 @@
+#include <iostream>
+
 #include <QLineEdit>
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QFormLayout>
 #include <QLabel>
+#include <QTextStream>
+#include <QUrl>
+
+#include <QFtp>
 
 #include "urlloginwidget.h"
 
 UrlLoginWidget::UrlLoginWidget(QWidget *parent) : QWidget(parent)
 {
-//    this->setMinimumSize(300, 200);
-//    this->setMaximumSize(500, 200);
-
-    _urlLine = new QLineEdit();
-    _loginLine = new QLineEdit();
+    _urlLine = new QLineEdit("ftp.gnu.org");
+    _loginLine = new QLineEdit("anonymous");
     _passwordLine = new QLineEdit();
-    auto loginButton = new QPushButton(tr("Connect"));
+    auto connectButton = new QPushButton(tr("Connect"));
 
-    auto formLayout = new QFormLayout();
-    formLayout->addRow(tr("&Url"), _urlLine);
-    formLayout->addRow(tr("&Login"), _loginLine);
-    formLayout->addRow(tr("&Password"), _passwordLine);
+    _urlLine->setPlaceholderText(tr("Url to ftp server"));
+    _loginLine->setPlaceholderText(tr("Login"));
+    _passwordLine->setPlaceholderText(tr("Password"));
 
-    formLayout->setRowWrapPolicy(QFormLayout::DontWrapRows);
-    formLayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    formLayout->setFormAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
-    formLayout->setLabelAlignment(Qt::AlignLeft);
+    auto formLayout = new QVBoxLayout();
+    formLayout->addWidget(_urlLine);
+    formLayout->addWidget(_loginLine);
+    formLayout->addWidget(_passwordLine);
+    formLayout->addWidget(connectButton);
 
+    this->setLayout(formLayout);
 
+    // signal & slot configuration
+    QObject::connect(connectButton, &QPushButton::clicked,
+                     this, &UrlLoginWidget::connectButtonClick);
+}
 
-    auto widgetLayout = new QBoxLayout(QBoxLayout::TopToBottom);
-    widgetLayout->addLayout(formLayout);
-    widgetLayout->addWidget(loginButton);
+void UrlLoginWidget::connectButtonClick(bool checked)
+{
+    const QString url = QString("//%1:%2@%3").arg(_loginLine->text(),
+                                          _passwordLine->text(),
+                                          _urlLine->text());
+    const QUrl ftpPath(url);
 
-    this->setLayout(widgetLayout);
+    emit connectRequest(ftpPath);
 }

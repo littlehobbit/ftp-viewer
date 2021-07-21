@@ -2,10 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QTextEdit>
 #include <QUrl>
 
-#include "ftpadapter.h"
+class QFtp;
+class QUrl;
+class QUrlInfo;
+class QTextEdit;
 
 class QNetworkAccessManager;
 
@@ -20,14 +22,18 @@ public:
 private slots:
     void sendRequest();
 
-    void error();
+    void errorOccured();
 
-    void listDirectory(std::vector<QUrlInfo> info);
+    void addListEntry(const QUrlInfo& entry);
 
-    void connected();
+    void ftpConnect(const QUrl &url = QUrl());
+
+    void ftpCommandFinished(int id, bool error);
 
 private:
+    void constructWidgetLayout();
+
     QTextEdit *_receivedData = nullptr;
-    FtpAdapter *_ftp = nullptr;
+    QFtp *_ftp = nullptr;
 };
 #endif // MAINWINDOW_H
