@@ -14,6 +14,9 @@
 
 UrlLoginWidget::UrlLoginWidget(QWidget *parent) : QWidget(parent)
 {
+    this->setFixedSize(200, 200);
+    this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+
     _urlLine = new QLineEdit("ftp.gnu.org");
     _loginLine = new QLineEdit("anonymous");
     _passwordLine = new QLineEdit();

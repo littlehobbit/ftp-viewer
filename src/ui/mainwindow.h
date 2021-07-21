@@ -8,6 +8,7 @@ class QFtp;
 class QUrl;
 class QUrlInfo;
 class QTextEdit;
+class QTreeWidget;
 
 class QNetworkAccessManager;
 
@@ -28,12 +29,16 @@ private slots:
 
     void ftpConnect(const QUrl &url = QUrl());
 
+    void ftpCommandStarted(int id);
+
     void ftpCommandFinished(int id, bool error);
 
 private:
     void constructWidgetLayout();
+    QTreeWidget* createTreeDirView();
 
-    QTextEdit *_receivedData = nullptr;
+    QTreeWidget *_dir;
+
     QFtp *_ftp = nullptr;
 };
 #endif // MAINWINDOW_H

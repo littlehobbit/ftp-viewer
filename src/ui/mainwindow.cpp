@@ -7,6 +7,8 @@
 #include <QMenuBar>
 #include <QToolBar>
 #include <QGroupBox>
+#include <QTreeWidget>
+#include <QMessageBox>
 
 #include <QFtp>
 #include <QUrlInfo>
@@ -20,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     this->resize(500, 500);
 
-
+    // TODO: refactor this func
     constructWidgetLayout();
 }
 
@@ -37,10 +39,6 @@ void MainWindow::constructWidgetLayout()
             this, &MainWindow::sendRequest
     );
 
-    // Text box
-    _receivedData = new QTextEdit("Here will be the answner", this);
-    _receivedData->setReadOnly(true);
-
     // Layout
     auto urlLoginWidget = new UrlLoginWidget;
     auto urlLoginLayout = new QVBoxLayout;
@@ -56,44 +54,84 @@ void MainWindow::constructWidgetLayout()
     rightLayout->addWidget(urlLoginGroup);
     rightLayout->addStretch(1);
     rightLayout->addWidget(sendButton);
+    rightLayout->setSizeConstraint(QLayout::SetFixedSize);
 
     auto widgetLayout = new QHBoxLayout();
-    widgetLayout->addWidget(_receivedData);
+
+
+    _dir = createTreeDirView();
+    widgetLayout->addWidget(_dir);
     widgetLayout->addLayout(rightLayout);
 
     frame->setLayout(widgetLayout);
 }
 
+QTreeWidget* MainWindow::createTreeDirView()
+{
+    const QStringList headerLabels = {"Name", "Size", "Owner"};
+
+    auto treeWidget = new QTreeWidget();
+    treeWidget->setHeaderLabels(headerLabels);
+//    QList<QTreeWidgetItem *> items;
+//    for (int i = 0; i < 10; ++i)
+//        items.append(new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr), QStringList({"node", "2", "me"})));
+//    treeWidget->insertTopLevelItems(0, items);
+
+    return treeWidget;
+}
+
 void MainWindow::sendRequest()
 {
+    _ftp->list();
 }
 
 void MainWindow::errorOccured()
 {
-    QTextStream out(stdout);
-    out << _ftp->errorString() << Qt::endl;
+    QMessageBox::critical(
+      this,
+      tr("Erorr"),
+      _ftp->errorString()
+    );
 }
 
 void MainWindow::addListEntry(const QUrlInfo& entry)
 {
-    QString text = _receivedData->toPlainText();
-    text += '\n' + entry.name();
+    QStringList newEntry;
+    newEntry.append(entry.name());
+    newEntry.append(QString::number(entry.size()));
+    newEntry.append(entry.owner());
+
+    _dir->addTopLevelItem(new QTreeWidgetItem(newEntry));
 }
 
 void MainWindow::ftpConnect(const QUrl &url)
 {
-    QTextStream(stdout) << url.host() << ' ' << url.userName() << ' ' << url.password() << Qt::endl;
+    // Debug info
+    QTextStream(stdout) << url.host() << ' ' << url.userName() << ' ' << url.password() << ' ' << Qt::endl;
 
     if (_ftp) {
+        // Abort last command and delete connection
         _ftp->abort();
         _ftp->deleteLater();
     }
 
+    // New ftp connection
     _ftp = new QFtp(this);
     _ftp->connectToHost(url.host(), url.port(21));
 
+    QString userName = url.userName();
+    if (userName.isEmpty()) {
+        _ftp->login("anonymous", url.password());
+    } else {
+        _ftp->login(userName, url.password());
+    }
+
+    // ftp configure
     QObject::connect(_ftp, &QFtp::listInfo,
                      this, &MainWindow::addListEntry);
+
+    QObject::connect(_ftp, &QFtp::commandStarted,
+                     this, &MainWindow::ftpCommandStarted);
 
     QObject::connect(_ftp, &QFtp::commandFinished,
                      this, &MainWindow::ftpCommandFinished);
@@ -126,6 +164,17 @@ void MainWindow::ftpConnect(const QUrl &url)
 
 }
 
+void MainWindow::ftpCommandStarted(int id)
+{
+    switch (_ftp->currentCommand()) {
+    case QFtp::List:
+        _dir->clear();
+        break;
+    default:
+        break;
+    }
+}
+
 void MainWindow::ftpCommandFinished(int id, bool error)
 {
     if (error) {
@@ -133,6 +182,7 @@ void MainWindow::ftpCommandFinished(int id, bool error)
         return;
     }
 
+    // Result proccessing
     switch (_ftp->currentCommand()) {
     default:
         break;
