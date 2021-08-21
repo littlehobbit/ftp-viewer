@@ -42,8 +42,8 @@ UrlLoginWidget::UrlLoginWidget(QWidget *parent) : QWidget(parent)
 void UrlLoginWidget::connectButtonClick(bool checked)
 {
     const QString url = QString("//%1:%2@%3").arg(_loginLine->text(),
-                                          _passwordLine->text(),
-                                          _urlLine->text());
+                                                  _passwordLine->text(),
+                                                  _urlLine->text());
     const QUrl ftpPath(url);
 
     emit connectRequest(ftpPath);

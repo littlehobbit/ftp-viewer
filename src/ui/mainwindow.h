@@ -9,6 +9,8 @@ class QUrl;
 class QUrlInfo;
 class QTextEdit;
 class QTreeWidget;
+class QGroupBox;
+class QTreeView;
 
 class QNetworkAccessManager;
 
@@ -35,9 +37,12 @@ private slots:
 
 private:
     void constructWidgetLayout();
-    QTreeWidget* createTreeDirView();
 
-    QTreeWidget *_dir;
+    QGroupBox* createConnectionGroup();
+
+    QTreeView* createTreeDirView();
+
+    QTreeView *_dir;
 
     QFtp *_ftp = nullptr;
 };

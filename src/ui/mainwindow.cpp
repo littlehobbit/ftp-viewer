@@ -16,6 +16,7 @@
 
 #include "mainwindow.h"
 #include "urlloginwidget.h"
+#include "ftpdirmodel.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -32,14 +33,33 @@ void MainWindow::constructWidgetLayout()
     QFrame *frame = new QFrame();
     this->setCentralWidget(frame);
 
-    // Button configuration
+
     QPushButton *sendButton = new QPushButton("Send request");
     QObject::connect(
             sendButton, &QPushButton::pressed,
             this, &MainWindow::sendRequest
     );
 
-    // Layout
+    auto urlLoginGroup = createConnectionGroup();
+
+    QBoxLayout *rightLayout = new QVBoxLayout();
+    rightLayout->addWidget(urlLoginGroup);
+    rightLayout->addStretch(1);
+    rightLayout->addWidget(sendButton);
+    rightLayout->setSizeConstraint(QLayout::SetFixedSize);
+
+
+    _dir = createTreeDirView();
+
+    auto widgetLayout = new QHBoxLayout();
+    widgetLayout->addWidget(_dir);
+    widgetLayout->addLayout(rightLayout);
+
+    frame->setLayout(widgetLayout);
+}
+
+QGroupBox* MainWindow::createConnectionGroup()
+{
     auto urlLoginWidget = new UrlLoginWidget;
     auto urlLoginLayout = new QVBoxLayout;
     urlLoginLayout->addWidget(urlLoginWidget);
@@ -50,34 +70,19 @@ void MainWindow::constructWidgetLayout()
     auto urlLoginGroup = new QGroupBox(tr("Connection"));
     urlLoginGroup->setLayout(urlLoginLayout);
 
-    QBoxLayout *rightLayout = new QVBoxLayout();
-    rightLayout->addWidget(urlLoginGroup);
-    rightLayout->addStretch(1);
-    rightLayout->addWidget(sendButton);
-    rightLayout->setSizeConstraint(QLayout::SetFixedSize);
-
-    auto widgetLayout = new QHBoxLayout();
-
-
-    _dir = createTreeDirView();
-    widgetLayout->addWidget(_dir);
-    widgetLayout->addLayout(rightLayout);
-
-    frame->setLayout(widgetLayout);
+    return urlLoginGroup;
 }
 
-QTreeWidget* MainWindow::createTreeDirView()
+QTreeView* MainWindow::createTreeDirView()
 {
     const QStringList headerLabels = {"Name", "Size", "Owner"};
 
-    auto treeWidget = new QTreeWidget();
-    treeWidget->setHeaderLabels(headerLabels);
-//    QList<QTreeWidgetItem *> items;
-//    for (int i = 0; i < 10; ++i)
-//        items.append(new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr), QStringList({"node", "2", "me"})));
-//    treeWidget->insertTopLevelItems(0, items);
+    FtpDirModel *ftpModel = new FtpDirModel(this);
 
-    return treeWidget;
+    auto view = new QTreeView();
+    view->setModel(ftpModel);
+
+    return view;
 }
 
 void MainWindow::sendRequest()
@@ -97,11 +102,12 @@ void MainWindow::errorOccured()
 void MainWindow::addListEntry(const QUrlInfo& entry)
 {
     QStringList newEntry;
-    newEntry.append(entry.name());
+    QChar icon = entry.isDir() ? 'd' : 'f';
+    newEntry.append(icon + ' ' + entry.name());
     newEntry.append(QString::number(entry.size()));
     newEntry.append(entry.owner());
 
-    _dir->addTopLevelItem(new QTreeWidgetItem(newEntry));
+//    _dir->addTopLevelItem(new QTreeWidgetItem(newEntry));
 }
 
 void MainWindow::ftpConnect(const QUrl &url)
@@ -168,7 +174,7 @@ void MainWindow::ftpCommandStarted(int id)
 {
     switch (_ftp->currentCommand()) {
     case QFtp::List:
-        _dir->clear();
+//        _dir->clear();
         break;
     default:
         break;
