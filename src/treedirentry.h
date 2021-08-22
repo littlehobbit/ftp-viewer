@@ -17,13 +17,13 @@ public:
         setName(name);
     }
 
-    TreeDirEntry(const QUrlInfo& info, TreeDirEntry *parent)
-        : QUrlInfo(info), _parent(parent)
+    TreeDirEntry(const QUrlInfo& info)
+        : QUrlInfo(info)
     {}
 
     ~TreeDirEntry()
     {
-        qDeleteAll(_children);
+        deleteChildren();
     }
 
     void addChild(TreeDirEntry *child)
@@ -45,6 +45,11 @@ public:
     int countChild() const
     {
         return _children.size();
+    }
+
+    void deleteChildren()
+    {
+        qDeleteAll(_children);
     }
 
     int row() const

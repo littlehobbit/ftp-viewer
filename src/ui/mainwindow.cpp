@@ -75,9 +75,14 @@ QGroupBox* MainWindow::createConnectionGroup()
 
 QTreeView* MainWindow::createTreeDirView()
 {
-    const QStringList headerLabels = {"Name", "Size", "Owner"};
-
     FtpDirModel *ftpModel = new FtpDirModel(this);
+    QList<QUrlInfo> list;
+    QUrlInfo info;
+    info.setName("sub 1");
+    list << info;
+    info.setName("sub 2");
+    list << info;
+    ftpModel->setRoot("some.ftp.host.ru", list);
 
     auto view = new QTreeView();
     view->setModel(ftpModel);
